@@ -31,9 +31,9 @@
         // 1. 지도 시작 위치 맞추기 (서울 중심)
         var map = L.map('map').setView([37.5532, 126.9696], 13);
 
-        // 2. 배경 지도 불러오기 (오픈스트리트맵)
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap'
+       // 2. 배경 지도 불러오기 (Stamen Toner style - 아주 단순하고 깨끗)
+        L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
+            attribution: '© Stamen Design'
         }).addTo(map);
 
         // 3. ⭐️여기가 식당 데이터를 넣는 곳입니다! 엑셀 내용을 보며 계속 추가하세요⭐️
@@ -46,22 +46,65 @@
                 lng: 126.98588 // 경도 (숫자만)
             },
             {
-                name: "테스트 식당 (서울역)",
-                address: "서울특별시 용산구 청파로 378",
+                name: "모담 서울역점",
+                address: "중구 세종대로 14 그랜드센트럴 지하 3층",
                 menu: "한식",
-                lat: 37.5532,
-                lng: 126.9696
+                lat: 37.55820,
+                lng: 126.97390
+            },
+            {
+                name: "서령 본점",
+                address: "중구 소월로 10 1층",
+                menu: "한식",
+                lat: 37.55640,
+                lng: 126.97480
+            },
+            {
+                name: "호우섬 서울역사점",
+                address: "중구 한강대로 405 서울역사 3층",
+                menu: "중식",
+                lat: 37.55460,
+                lng: 126.97060
             }
         ];
 
-        // 4. 지도에 핀 꽂고 팝업창 연결하기 (자동으로 됨)
+        // 4. 메뉴별 예쁜 커스텀 아이콘 만들기 (이모지 활용)
+        // 한식 아이콘 (파란색 원 + 밥 이모지)
+        var koreanIcon = L.divIcon({
+            className: 'custom-div-icon',
+            html: "<div style='background-color:#3498db; width:30px; height:30px; border-radius:50%; border:2px solid white; text-align:center; line-height:26px; font-size:16px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);'>🍚</div>",
+            iconSize: [30, 30],
+            iconAnchor: [15, 15] // 아이콘의 중심점
+        });
+
+        // 중식 아이콘 (빨간색 원 + 만두 이모지)
+        var chineseIcon = L.divIcon({
+            className: 'custom-div-icon',
+            html: "<div style='background-color:#e74c3c; width:30px; height:30px; border-radius:50%; border:2px solid white; text-align:center; line-height:26px; font-size:16px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);'>🥟</div>",
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        });
+
+        // 5. 지도에 핀 꽂기 (조건에 따라 아이콘 바꿔주기)
         restaurants.forEach(function(place) {
             var popupContent = `
                 <div class="popup-title">🍽️ ${place.name}</div>
                 <p class="popup-info">📍 ${place.address}</p>
                 <p class="popup-info">🍴 메뉴: ${place.menu}</p>
             `;
-            L.marker([place.lat, place.lng])
+
+            // place.menu 글씨가 '한식'인지 '중식'인지 확인해서 아이콘 선택
+            var selectedIcon;
+            if (place.menu === "한식") {
+                selectedIcon = koreanIcon;
+            } else if (place.menu === "중식") {
+                selectedIcon = chineseIcon;
+            } else {
+                selectedIcon = new L.Icon.Default(); // 한식/중식이 아니면 기본 파란 핀
+            }
+
+            // 선택된 아이콘(icon: selectedIcon)을 마커에 적용해서 지도에 추가
+            L.marker([place.lat, place.lng], {icon: selectedIcon})
                 .bindPopup(popupContent, {className: 'custom-popup'})
                 .addTo(map);
         });
