@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>나만의 예쁜 맛집 지도</title>
+    <title>그랜드센트럴 식당리스트 지도</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
@@ -28,23 +28,17 @@
     <div id="map"></div>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // 1. 지도 시작 위치 맞추기 (서울 중심)
-        var map = L.map('map').setView([37.5532, 126.9696], 13);
+        // 1. 지도 시작 위치 맞추기 (서울역 중심)
+        var map = L.map('map').setView([37.556, 126.972], 15);
 
-        // 2. 배경 지도 불러오기 (CartoDB Positron - 노선도처럼 깔끔한 스타일)
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '© OpenStreetMap contributors © CARTO'
+        // 2. 배경 지도 불러오기 (⭐️구글 지도 스타일 - 알록달록하고 깔끔함⭐️)
+        L.tileLayer('https://mt1.google.com/vt/lyrs=m&hl=ko&x={x}&y={y}&z={z}', {
+            attribution: '© Google Maps',
+            maxZoom: 20
         }).addTo(map);
 
-        // 3. ⭐️여기가 식당 데이터를 넣는 곳입니다! 엑셀 내용을 보며 계속 추가하세요⭐️
+        // 3. 식당 데이터 (한식, 중식)
         var restaurants = [
-            {
-                name: "사유의서재 남산 와인다이닝",
-                address: "중구 퇴계로 20길 13 3층",
-                menu: "퓨전양식/와인",
-                lat: 37.55968, // 위도 (숫자만)
-                lng: 126.98588 // 경도 (숫자만)
-            },
             {
                 name: "모담 서울역점",
                 address: "중구 세종대로 14 그랜드센트럴 지하 3층",
@@ -93,7 +87,6 @@
                 <p class="popup-info">🍴 메뉴: ${place.menu}</p>
             `;
 
-            // place.menu 글씨가 '한식'인지 '중식'인지 확인해서 아이콘 선택
             var selectedIcon;
             if (place.menu === "한식") {
                 selectedIcon = koreanIcon;
@@ -103,7 +96,6 @@
                 selectedIcon = new L.Icon.Default(); // 한식/중식이 아니면 기본 파란 핀
             }
 
-            // 선택된 아이콘(icon: selectedIcon)을 마커에 적용해서 지도에 추가
             L.marker([place.lat, place.lng], {icon: selectedIcon})
                 .bindPopup(popupContent, {className: 'custom-popup'})
                 .addTo(map);
