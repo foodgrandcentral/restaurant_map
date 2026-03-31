@@ -3,172 +3,263 @@
 <head>
     <meta charset="utf-8">
     <title>그랜드센트럴 주변 식당 지도</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        body { margin: 0; padding: 0; background-color: #f8f9fa; }
+        body { margin: 0; padding: 0; background-color: #f8f9fa; font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; overflow: hidden; }
         #map { width: 100vw; height: 100vh; }
         
-        /* --- 프리미엄 팝업창 디자인 시작 --- */
-        /* 기본 여백 없애기 및 둥근 모서리 설정 */
-        .custom-popup .leaflet-popup-content-wrapper {
-            padding: 0;
-            overflow: hidden;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        /* --- 1. 좌측 슬라이드 사이드바 --- */
+        #sidebar {
+            position: absolute; top: 0; left: 0; width: 320px; height: 100vh;
+            background: white; z-index: 2000;
+            transition: transform 0.3s ease;
+            box-shadow: 2px 0 15px rgba(0,0,0,0.15);
+            display: flex; flex-direction: column;
         }
-        .custom-popup .leaflet-popup-content {
-            margin: 0;
-            width: 260px !important; 
+        #sidebar.closed { transform: translateX(-100%); } /* 접혔을 때 화면 밖으로 이동 */
+        
+        #sidebar-toggle {
+            position: absolute; top: 50%; right: -28px; transform: translateY(-50%);
+            width: 28px; height: 60px; background: white;
+            border-radius: 0 10px 10px 0; cursor: pointer;
+            box-shadow: 3px 0 5px rgba(0,0,0,0.1);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; color: #555; z-index: 2001; border-left: 1px solid #eee;
         }
-        /* 닫기(X) 버튼 하얀색으로 변경 */
-        .custom-popup .leaflet-popup-close-button {
-            color: #ffffff !important;
-            padding: 8px 8px 0 0 !important;
-        }
+        
+        .sidebar-header { padding: 20px; font-weight: bold; font-size: 18px; border-bottom: 1px solid #eee; }
+        .list-count { color: #3498db; font-size: 14px; margin-left: 5px; }
+        
+        #restaurant-list { overflow-y: auto; flex: 1; padding: 0; margin: 0; list-style: none; }
+        .list-item { padding: 15px 20px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: background 0.2s; }
+        .list-item:hover { background-color: #f4f9fd; }
+        .list-title { font-weight: bold; font-size: 15px; color: #333; margin-bottom: 5px; }
+        .list-info { font-size: 12px; color: #777; }
+        .list-badge { display: inline-block; padding: 2px 6px; background: #eee; border-radius: 4px; font-size: 11px; margin-right: 5px; }
 
-        /* 1. 상단 어두운 헤더 영역 */
-        .popup-header {
-            background-color: #242432; /* 어두운 네이비색 */
-            color: white;
-            padding: 16px;
+        /* --- 2. 우측 상단 필터 & 검색 영역 --- */
+        .controls-container {
+            position: absolute; top: 20px; right: 20px; z-index: 1000;
+            display: flex; flex-direction: column; gap: 12px; align-items: flex-end;
         }
-        .popup-title {
-            font-size: 18px; 
-            font-weight: bold; 
-            margin-bottom: 10px;
+        
+        /* 메뉴 버튼들 */
+        .filter-buttons { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; max-width: 350px; }
+        .filter-btn {
+            padding: 8px 14px; border: 1px solid #ddd; background: white;
+            border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: all 0.2s;
         }
-        .header-badges {
-            display: flex; gap: 6px;
+        .filter-btn.active { background: #3498db; color: white; border-color: #3498db; }
+        
+        /* 돋보기 검색창 */
+        .search-box {
+            display: flex; align-items: center; background: white;
+            border-radius: 30px; border: 2px solid #3498db;
+            width: 280px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); overflow: hidden;
         }
+        .search-box span { padding-left: 15px; font-size: 16px; }
+        .search-box input { border: none; padding: 12px 15px; width: 100%; outline: none; font-size: 14px; }
+
+        /* --- 3. 팝업창 디자인 (기존 프리미엄 유지) --- */
+        .custom-popup .leaflet-popup-content-wrapper { padding: 0; overflow: hidden; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .custom-popup .leaflet-popup-content { margin: 0; width: 260px !important; }
+        .custom-popup .leaflet-popup-close-button { color: #ffffff !important; padding: 8px 8px 0 0 !important; }
+        .popup-header { background-color: #242432; color: white; padding: 16px; }
+        .popup-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
+        .header-badges { display: flex; gap: 6px; }
         .badge-dark { background-color: #3b3b4d; padding: 4px 10px; border-radius: 12px; font-size: 12px; color: #ddd; }
         .badge-orange { background-color: #ff7f00; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; }
-
-        /* 2. 하단 하얀색 내용 영역 */
-        .popup-body {
-            background-color: white;
-            padding: 16px;
+        .popup-body { background-color: white; padding: 16px; }
+        .info-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; font-size: 13px; color: #444; line-height: 1.4; }
+        .feature-tags { display: flex; gap: 8px; margin: 15px 0; }
+        .tag-green { background-color: #e6f8f0; color: #00a060; padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; }
+        .naver-btn { display: flex; align-items: center; justify-content: center; gap: 5px; background-color: #03c75a; color: white; text-decoration: none; padding: 10px; border-radius: 6px; font-weight: bold; font-size: 14px; margin-top: 10px; width: fit-content; }
+        
+        /* 모바일 화면 대응 */
+        @media (max-width: 600px) {
+            #sidebar { width: 280px; }
+            .controls-container { top: 10px; right: 10px; }
+            .filter-btn { padding: 6px 10px; font-size: 12px; }
+            .search-box { width: 200px; }
         }
-        .info-row {
-            display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; font-size: 13px; color: #444; line-height: 1.4;
-        }
-
-        /* 3. 특징 태그 (룸, 예약) */
-        .feature-tags {
-            display: flex; gap: 8px; margin: 15px 0;
-        }
-        .tag-green {
-            background-color: #e6f8f0; color: #00a060; padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: bold;
-        }
-
-        /* 4. 네이버 버튼 */
-        .naver-btn {
-            display: flex; align-items: center; justify-content: center; gap: 5px;
-            background-color: #03c75a; color: white; text-decoration: none;
-            padding: 10px; border-radius: 6px; font-weight: bold; font-size: 14px;
-            margin-top: 10px; width: fit-content;
-        }
-        .naver-btn:hover { background-color: #02b350; color: white; }
     </style>
 </head>
 <body>
+
+    <div id="sidebar">
+        <div id="sidebar-toggle">◀</div>
+        <div class="sidebar-header">식당 목록 <span class="list-count" id="list-count">0개</span></div>
+        <ul id="restaurant-list"></ul>
+    </div>
+
+    <div class="controls-container">
+        <div class="filter-buttons" id="filter-buttons">
+            <button class="filter-btn active" data-category="전체">전체</button>
+            <button class="filter-btn" data-category="한식">한식</button>
+            <button class="filter-btn" data-category="중식">중식</button>
+            <button class="filter-btn" data-category="일식">일식</button>
+            <button class="filter-btn" data-category="양식">양식</button>
+            <button class="filter-btn" data-category="고기">고기</button>
+            <button class="filter-btn" data-category="기타">기타</button>
+        </div>
+        <div class="search-box">
+            <span>🔍</span>
+            <input type="text" id="searchInput" placeholder="식당명 검색">
+        </div>
+    </div>
+
     <div id="map"></div>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // 1. 구글 배경 지도
-        var map = L.map('map').setView([37.556, 126.972], 15);
-        L.tileLayer('https://mt1.google.com/vt/lyrs=m&hl=ko&x={x}&y={y}&z={z}', {
-            attribution: '© Google Maps', maxZoom: 20
-        }).addTo(map);
+        // --- 지도 초기화 ---
+        var map = L.map('map', {zoomControl: false}).setView([37.556, 126.972], 15);
+        L.control.zoom({ position: 'bottomright' }).addTo(map); 
+        L.tileLayer('https://mt1.google.com/vt/lyrs=m&hl=ko&x={x}&y={y}&z={z}', { attribution: '© Google Maps', maxZoom: 20 }).addTo(map);
 
-        // 2. 식당 데이터 (룸 여부, 예약 가능 여부 속성 추가)
+        // --- 식당 데이터 (엑셀 변환 데이터 넣는 곳) ---
         var restaurants = [
-            {
-                name: "모담 서울역점",
-                address: "중구 세종대로 14 그랜드센트럴 지하 3층",
-                menu: "한식",
-                lat: 37.55820, lng: 126.97390,
-                hasRoom: true, reservable: true
-            },
-            {
-                name: "서령 본점",
-                address: "중구 소월로 10 1층",
-                menu: "한식",
-                lat: 37.55640, lng: 126.97480,
-                hasRoom: true, reservable: true
-            },
-            {
-                name: "타니 서울역점",
-                address: "용산구 청파로 378 KTX 서울역 4층",
-                menu: "일식",
-                lat: 37.552582, lng: 126.971101,
-                hasRoom: true, reservable: true
-            },
-            {
-                name: "호우섬 서울역사점",
-                address: "중구 한강대로 405 서울역사 3층",
-                menu: "중식",
-                lat: 37.55460, lng: 126.97060,
-                hasRoom: true, reservable: true
-            }
+            { name: "모담 서울역점", address: "중구 세종대로 14 그랜드센트럴 지하 3층", menu: "한식", lat: 37.55820, lng: 126.97390, hasRoom: true, reservable: true },
+            { name: "서령 본점", address: "중구 소월로 10 1층", menu: "한식", lat: 37.55640, lng: 126.97480, hasRoom: true, reservable: true },
+            { name: "타니 서울역점", address: "용산구 청파로 378 KTX 서울역 4층", menu: "일식", lat: 37.552582, lng: 126.971101, hasRoom: true, reservable: true },
+            { name: "호우섬 서울역사점", address: "중구 한강대로 405 서울역사 3층", menu: "중식", lat: 37.55460, lng: 126.97060, hasRoom: true, reservable: true },
+            { name: "보원", address: "중구 남대문로1길 26-10 1층", menu: "고기", lat: 37.5615, lng: 126.9760, hasRoom: true, reservable: true },
+            { name: "콘피에르", address: "중구 세종대로 14 그랜드센트럴 2층", menu: "양식", lat: 37.5583, lng: 126.9738, hasRoom: false, reservable: true }
         ];
 
-        // 3. 아이콘 디자인
-        var koreanIcon = L.divIcon({ className: 'custom-div-icon', html: "<div style='background-color:#3498db; width:30px; height:30px; border-radius:50%; border:2px solid white; text-align:center; line-height:26px; font-size:16px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);'>🍚</div>", iconSize: [30, 30], iconAnchor: [15, 15] });
-        var chineseIcon = L.divIcon({ className: 'custom-div-icon', html: "<div style='background-color:#e74c3c; width:30px; height:30px; border-radius:50%; border:2px solid white; text-align:center; line-height:26px; font-size:16px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);'>🥟</div>", iconSize: [30, 30], iconAnchor: [15, 15] });
-        var japaneseIcon = L.divIcon({ className: 'custom-div-icon', html: "<div style='background-color:#9b59b6; width:30px; height:30px; border-radius:50%; border:2px solid white; text-align:center; line-height:26px; font-size:16px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);'>🍣</div>", iconSize: [30, 30], iconAnchor: [15, 15] });
-        // 4. 지도에 핀 꽂기 및 프리미엄 팝업 연결
-        restaurants.forEach(function(place) {
-            // 주소에서 첫 단어(예: 중구)만 뽑아서 배지로 만들기
-            var region = place.address.split(' ')[0]; 
+        // --- 아이콘 디자인 (양식, 고기, 기타 등 확장) ---
+        function createIcon(color, emoji) {
+            return L.divIcon({ className: 'custom-div-icon', html: `<div style='background-color:${color}; width:30px; height:30px; border-radius:50%; border:2px solid white; text-align:center; line-height:26px; font-size:16px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);'>${emoji}</div>`, iconSize: [30, 30], iconAnchor: [15, 15] });
+        }
+        var icons = {
+            "한식": createIcon("#3498db", "🍚"),
+            "중식": createIcon("#e74c3c", "🥟"),
+            "일식": createIcon("#9b59b6", "🍣"),
+            "양식": createIcon("#f39c12", "🍝"),
+            "고기": createIcon("#d35400", "🥩"),
+            "default": createIcon("#7f8c8d", "🍴")
+        };
+
+        var markerGroup = L.layerGroup().addTo(map);
+        var activeMarkers = []; // 리스트 클릭 시 팝업을 열기 위해 마커들을 저장해두는 배열
+
+        // 현재 선택된 필터 상태
+        var currentCategory = "전체";
+        var currentSearch = "";
+
+        // --- 지도와 리스트를 동시에 그리는 메인 함수 ---
+        function renderMapAndList() {
+            markerGroup.clearLayers();
+            activeMarkers = [];
+            var listHtml = "";
+            var count = 0;
+
+            restaurants.forEach(function(place, index) {
+                // 1. 조건 검사 (카테고리 & 검색어)
+                var matchCategory = (currentCategory === "전체" || place.menu.includes(currentCategory));
+                var matchSearch = (!currentSearch || place.name.includes(currentSearch));
+
+                // 조건에 맞으면 지도에 핀을 꽂고 사이드바 목록에 추가
+                if (matchCategory && matchSearch) {
+                    count++;
+                    
+                    // --- 지도 핀 그리기 ---
+                    var region = place.address.split(' ')[0]; 
+                    var naverSearchUrl = "https://map.naver.com/p/search/" + encodeURIComponent(place.name);
+                    var titleEmoji = place.menu.includes("고기") ? "🥩" : (place.menu === "한식" ? "🍚" : (place.menu === "중식" ? "🥟" : (place.menu === "일식" ? "🍣" : (place.menu === "양식" ? "🍝" : "🍽️"))));
+
+                    var popupContent = `
+                        <div class="popup-header">
+                            <div class="popup-title">${titleEmoji} ${place.name}</div>
+                            <div class="header-badges"><span class="badge-dark">${region}</span><span class="badge-orange">${place.menu}</span></div>
+                        </div>
+                        <div class="popup-body">
+                            <div class="info-row"><span>📍</span><span>${place.address}</span></div>
+                            <div class="feature-tags">
+                                ${place.hasRoom ? `<span class="tag-green">🚪 룸가능</span>` : ''}
+                                ${place.reservable ? `<span class="tag-green">✅ 예약가능</span>` : ''}
+                            </div>
+                            <a href="${naverSearchUrl}" target="_blank" class="naver-btn">🟢 네이버</a>
+                        </div>
+                    `;
+
+                    var selectedIcon = icons[place.menu] || icons["고기"] || icons["default"];
+                    if(place.menu.includes("고기")) selectedIcon = icons["고기"];
+
+                    var marker = L.marker([place.lat, place.lng], {icon: selectedIcon}).bindPopup(popupContent, {className: 'custom-popup'});
+                    markerGroup.addLayer(marker);
+                    
+                    // 마커 저장 (리스트 클릭 시 연동하기 위함)
+                    activeMarkers.push({ marker: marker, lat: place.lat, lng: place.lng });
+                    var markerIndex = activeMarkers.length - 1;
+
+                    // --- 사이드바 리스트 HTML 만들기 ---
+                    listHtml += `
+                        <li class="list-item" onclick="clickListItem(${markerIndex})">
+                            <div class="list-title">${place.name}</div>
+                            <div class="list-info">
+                                <span class="list-badge">${region}</span>
+                                <span class="list-badge" style="background:#fff3e0; color:#e67e22;">${place.menu}</span>
+                            </div>
+                        </li>
+                    `;
+                }
+            });
+
+            // 화면 업데이트
+            document.getElementById('restaurant-list').innerHTML = listHtml;
+            document.getElementById('list-count').innerText = count + "개";
+        }
+
+        // 리스트 항목 클릭 시 지도 이동 & 팝업 열기
+        function clickListItem(index) {
+            var item = activeMarkers[index];
+            map.setView([item.lat, item.lng], 16); // 해당 위치로 줌인
+            item.marker.openPopup(); // 팝업 열기
             
-            // 식당 이름으로 네이버 지도 검색 URL 자동 생성
-            var naverSearchUrl = "https://map.naver.com/p/search/" + encodeURIComponent(place.name);
+            // 모바일 화면에서는 클릭 후 사이드바를 살짝 접어주는 센스
+            if(window.innerWidth <= 600) { toggleSidebar(); }
+        }
 
-            // ⭐️ 메뉴에 따라 팝업창 제목 앞의 이모지 자동으로 결정하기
-            var titleEmoji = "🍽️"; // 기본 이모지 (한식, 중식 등이 아닐 때)
-            if (place.menu === "한식") {
-                titleEmoji = "🍚";
-            } else if (place.menu === "중식") {
-                titleEmoji = "🥟";
-            } else if (place.menu === "일식") {
-                titleEmoji = "🍣";
-            } else if (place.menu.includes("고기")) { // 메뉴에 '고기'라는 단어가 포함되어 있다면
-                titleEmoji = "🥩";
-            }
-
-            // 팝업창 HTML 구조 조립
-            var popupContent = `
-                <div class="popup-header">
-                    <div class="popup-title">${titleEmoji} ${place.name}</div>
-                    <div class="header-badges">
-                        <span class="badge-dark">${region}</span>
-                        <span class="badge-orange">${place.menu}</span>
-                    </div>
-                </div>
-                <div class="popup-body">
-                    <div class="info-row">
-                        <span>📍</span><span>${place.address}</span>
-                    </div>
-                    
-                    <div class="feature-tags">
-                        ${place.hasRoom ? `<span class="tag-green">🚪 룸가능</span>` : ''}
-                        ${place.reservable ? `<span class="tag-green">✅ 예약가능</span>` : ''}
-                    </div>
-                    
-                    <a href="${naverSearchUrl}" target="_blank" class="naver-btn">
-                        🟢 네이버
-                    </a>
-                </div>
-            `;
-
-            // 마커 아이콘도 메뉴에 맞춰 선택
-            var selectedIcon = (place.menu === "한식") ? koreanIcon : (place.menu === "중식") ? chineseIcon : new L.Icon.Default();
-
-            L.marker([place.lat, place.lng], {icon: selectedIcon})
-                .bindPopup(popupContent, {className: 'custom-popup'})
-                .addTo(map);
+        // --- 이벤트 설정 ---
+        // 1. 필터 버튼 클릭 이벤트
+        var filterBtns = document.querySelectorAll('.filter-btn');
+        filterBtns.forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                // 버튼 색상 변경
+                filterBtns.forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                
+                // 데이터 필터링
+                currentCategory = e.target.getAttribute('data-category');
+                renderMapAndList();
+            });
         });
+
+        // 2. 검색창 입력 이벤트
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            currentSearch = e.target.value;
+            renderMapAndList();
+        });
+
+        // 3. 사이드바 접기/펴기 이벤트
+        var sidebar = document.getElementById('sidebar');
+        var sidebarToggle = document.getElementById('sidebar-toggle');
+        
+        function toggleSidebar() {
+            sidebar.classList.toggle('closed');
+            if(sidebar.classList.contains('closed')) {
+                sidebarToggle.innerText = '▶';
+            } else {
+                sidebarToggle.innerText = '◀';
+            }
+        }
+        sidebarToggle.addEventListener('click', toggleSidebar);
+
+        // 최초 실행
+        renderMapAndList();
     </script>
 </body>
 </html>
