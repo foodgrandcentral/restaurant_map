@@ -2,99 +2,148 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>그랜드센트럴 식당리스트 지도</title>
+    <title>그랜드센트럴 주변 식당 지도</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body { margin: 0; padding: 0; background-color: #f8f9fa; }
         #map { width: 100vw; height: 100vh; }
         
-        /* 팝업창 디자인 꾸미기 */
+        /* --- 프리미엄 팝업창 디자인 시작 --- */
+        /* 기본 여백 없애기 및 둥근 모서리 설정 */
         .custom-popup .leaflet-popup-content-wrapper {
-            background: #ffffff;
+            padding: 0;
+            overflow: hidden;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            padding: 5px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
-        .custom-popup .popup-title {
-            font-size: 16px; font-weight: bold; color: #2c3e50; margin-bottom: 8px; border-bottom: 2px solid #3498db; padding-bottom: 5px;
+        .custom-popup .leaflet-popup-content {
+            margin: 0;
+            width: 260px !important; 
         }
-        .custom-popup .popup-info {
-            font-size: 13px; color: #555; margin: 4px 0;
+        /* 닫기(X) 버튼 하얀색으로 변경 */
+        .custom-popup .leaflet-popup-close-button {
+            color: #ffffff !important;
+            padding: 8px 8px 0 0 !important;
         }
+
+        /* 1. 상단 어두운 헤더 영역 */
+        .popup-header {
+            background-color: #242432; /* 어두운 네이비색 */
+            color: white;
+            padding: 16px;
+        }
+        .popup-title {
+            font-size: 18px; 
+            font-weight: bold; 
+            margin-bottom: 10px;
+        }
+        .header-badges {
+            display: flex; gap: 6px;
+        }
+        .badge-dark { background-color: #3b3b4d; padding: 4px 10px; border-radius: 12px; font-size: 12px; color: #ddd; }
+        .badge-orange { background-color: #ff7f00; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+
+        /* 2. 하단 하얀색 내용 영역 */
+        .popup-body {
+            background-color: white;
+            padding: 16px;
+        }
+        .info-row {
+            display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; font-size: 13px; color: #444; line-height: 1.4;
+        }
+
+        /* 3. 특징 태그 (룸, 예약) */
+        .feature-tags {
+            display: flex; gap: 8px; margin: 15px 0;
+        }
+        .tag-green {
+            background-color: #e6f8f0; color: #00a060; padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: bold;
+        }
+
+        /* 4. 네이버 버튼 */
+        .naver-btn {
+            display: flex; align-items: center; justify-content: center; gap: 5px;
+            background-color: #03c75a; color: white; text-decoration: none;
+            padding: 10px; border-radius: 6px; font-weight: bold; font-size: 14px;
+            margin-top: 10px; width: fit-content;
+        }
+        .naver-btn:hover { background-color: #02b350; color: white; }
     </style>
 </head>
 <body>
     <div id="map"></div>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // 1. 지도 시작 위치 맞추기 (서울역 중심)
+        // 1. 구글 배경 지도
         var map = L.map('map').setView([37.556, 126.972], 15);
-
-        // 2. 배경 지도 불러오기 (⭐️구글 지도 스타일 - 알록달록하고 깔끔함⭐️)
         L.tileLayer('https://mt1.google.com/vt/lyrs=m&hl=ko&x={x}&y={y}&z={z}', {
-            attribution: '© Google Maps',
-            maxZoom: 20
+            attribution: '© Google Maps', maxZoom: 20
         }).addTo(map);
 
-        // 3. 식당 데이터 (한식, 중식)
+        // 2. 식당 데이터 (룸 여부, 예약 가능 여부 속성 추가)
         var restaurants = [
             {
                 name: "모담 서울역점",
                 address: "중구 세종대로 14 그랜드센트럴 지하 3층",
                 menu: "한식",
-                lat: 37.55820,
-                lng: 126.97390
+                lat: 37.55820, lng: 126.97390,
+                hasRoom: true, reservable: true
             },
             {
                 name: "서령 본점",
                 address: "중구 소월로 10 1층",
                 menu: "한식",
-                lat: 37.55640,
-                lng: 126.97480
+                lat: 37.55640, lng: 126.97480,
+                hasRoom: true, reservable: true
             },
             {
                 name: "호우섬 서울역사점",
                 address: "중구 한강대로 405 서울역사 3층",
                 menu: "중식",
-                lat: 37.55460,
-                lng: 126.97060
+                lat: 37.55460, lng: 126.97060,
+                hasRoom: true, reservable: true
             }
         ];
 
-        // 4. 메뉴별 예쁜 커스텀 아이콘 만들기 (이모지 활용)
-        // 한식 아이콘 (파란색 원 + 밥 이모지)
-        var koreanIcon = L.divIcon({
-            className: 'custom-div-icon',
-            html: "<div style='background-color:#3498db; width:30px; height:30px; border-radius:50%; border:2px solid white; text-align:center; line-height:26px; font-size:16px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);'>🍚</div>",
-            iconSize: [30, 30],
-            iconAnchor: [15, 15] // 아이콘의 중심점
-        });
+        // 3. 아이콘 디자인
+        var koreanIcon = L.divIcon({ className: 'custom-div-icon', html: "<div style='background-color:#3498db; width:30px; height:30px; border-radius:50%; border:2px solid white; text-align:center; line-height:26px; font-size:16px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);'>🍚</div>", iconSize: [30, 30], iconAnchor: [15, 15] });
+        var chineseIcon = L.divIcon({ className: 'custom-div-icon', html: "<div style='background-color:#e74c3c; width:30px; height:30px; border-radius:50%; border:2px solid white; text-align:center; line-height:26px; font-size:16px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);'>🥟</div>", iconSize: [30, 30], iconAnchor: [15, 15] });
 
-        // 중식 아이콘 (빨간색 원 + 만두 이모지)
-        var chineseIcon = L.divIcon({
-            className: 'custom-div-icon',
-            html: "<div style='background-color:#e74c3c; width:30px; height:30px; border-radius:50%; border:2px solid white; text-align:center; line-height:26px; font-size:16px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);'>🥟</div>",
-            iconSize: [30, 30],
-            iconAnchor: [15, 15]
-        });
-
-        // 5. 지도에 핀 꽂기 (조건에 따라 아이콘 바꿔주기)
+        // 4. 지도에 핀 꽂기 및 프리미엄 팝업 연결
         restaurants.forEach(function(place) {
+            // 주소에서 첫 단어(예: 중구)만 뽑아서 배지로 만들기
+            var region = place.address.split(' ')[0]; 
+            
+            // 식당 이름으로 네이버 지도 검색 URL 자동 생성
+            var naverSearchUrl = "https://map.naver.com/p/search/" + encodeURIComponent(place.name);
+
+            // 팝업창 HTML 구조 조립 (사진과 동일한 레이아웃)
             var popupContent = `
-                <div class="popup-title">🍽️ ${place.name}</div>
-                <p class="popup-info">📍 ${place.address}</p>
-                <p class="popup-info">🍴 메뉴: ${place.menu}</p>
+                <div class="popup-header">
+                    <div class="popup-title">🥩 ${place.name}</div>
+                    <div class="header-badges">
+                        <span class="badge-dark">${region}</span>
+                        <span class="badge-orange">${place.menu}</span>
+                    </div>
+                </div>
+                <div class="popup-body">
+                    <div class="info-row">
+                        <span>📍</span><span>${place.address}</span>
+                    </div>
+                    
+                    <div class="feature-tags">
+                        ${place.hasRoom ? `<span class="tag-green">🚪 룸가능</span>` : ''}
+                        ${place.reservable ? `<span class="tag-green">✅ 예약가능</span>` : ''}
+                    </div>
+                    
+                    <a href="${naverSearchUrl}" target="_blank" class="naver-btn">
+                        🟢 네이버
+                    </a>
+                </div>
             `;
 
-            var selectedIcon;
-            if (place.menu === "한식") {
-                selectedIcon = koreanIcon;
-            } else if (place.menu === "중식") {
-                selectedIcon = chineseIcon;
-            } else {
-                selectedIcon = new L.Icon.Default(); // 한식/중식이 아니면 기본 파란 핀
-            }
+            var selectedIcon = (place.menu === "한식") ? koreanIcon : (place.menu === "중식") ? chineseIcon : new L.Icon.Default();
 
             L.marker([place.lat, place.lng], {icon: selectedIcon})
                 .bindPopup(popupContent, {className: 'custom-popup'})
