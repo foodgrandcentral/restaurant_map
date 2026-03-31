@@ -98,6 +98,13 @@
                 hasRoom: true, reservable: true
             },
             {
+                name: "타니 서울역점",
+                address: "용산구 청파로 378 KTX 서울역 4층",
+                menu: "일식",
+                lat: 37.552582, lng: 126.971101,
+                hasRoom: true, reservable: true
+            },
+            {
                 name: "호우섬 서울역사점",
                 address: "중구 한강대로 405 서울역사 3층",
                 menu: "중식",
@@ -124,6 +131,8 @@
                 titleEmoji = "🍚";
             } else if (place.menu === "중식") {
                 titleEmoji = "🥟";
+            } else if (place.menu === "일식") {
+                titleEmoji = "🍣";
             } else if (place.menu.includes("고기")) { // 메뉴에 '고기'라는 단어가 포함되어 있다면
                 titleEmoji = "🥩";
             }
