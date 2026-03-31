@@ -48,7 +48,7 @@
         .feature-tags { display: flex; gap: 8px; margin: 12px 0; }
         .tag-green { background-color: #e6f8f0; color: #00a060; padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; }
         
-        /* 새로 추가된 메모 & 코멘트 박스 디자인 */
+        /* 박스 디자인 */
         .box-container { margin-top: 15px; }
         .box-label { font-size: 12px; font-weight: bold; color: #888; margin-bottom: 5px; display: flex; align-items: center; gap: 4px; }
         .content-box { background-color: #fdfaf6; border: 1px solid #f0e6d2; border-radius: 8px; padding: 12px; font-size: 13px; color: #444; line-height: 1.5; white-space: pre-wrap; }
@@ -99,8 +99,8 @@
         L.control.zoom({ position: 'bottomright' }).addTo(map); 
         L.tileLayer('https://mt1.google.com/vt/lyrs=m&hl=ko&x={x}&y={y}&z={z}', { attribution: '© Google Maps', maxZoom: 20 }).addTo(map);
 
-        // 🌟 큰따옴표를 제거하고 쉼표를 정리한 클린 데이터입니다.
-        var restaurants = [
+        // 🚨 여기에 질문자님의 다듬어진 300개 식당 코드를 복사해서 덮어씌워 주세요! 🚨
+var restaurants = [
             { name: `모담 서울역점`, phone: `0507-1379-6450`, menu: `한식`, detailMenu: `솥밥`, walkTime: `1`, address: `서울특별시 중구 세종대로 14 그랜드센트럴 지하 3층`, lat: 37.5578385, lng: 126.9744151, hasRoom: true, reservable: true, closedDay: `-`, memo: `∙ 15:00-17:00 브레이크타임\n∙ 25년 11월 신규 오픈`, comment: `` },
             { name: `정백어가 그랜드센트럴서울역점`, phone: `0507-1394-6428`, menu: `한식`, detailMenu: `생선구이`, walkTime: `1`, address: `서울특별시 중구 세종대로 14 그랜드센트럴 A동 103호`, lat: 37.5578385, lng: 126.9744151, hasRoom: false, reservable: true, closedDay: `일`, memo: `∙ 15:00-17:00 브레이크타임\n∙ 단체 이용 가능`, comment: `` },
             { name: `윤슬`, phone: `02-6411-6440`, menu: `한식`, detailMenu: `샤브샤브`, walkTime: `1`, address: `서울특별시 중구 세종대로 14 그랜드센트럴 1층`, lat: 37.5578385, lng: 126.9744151, hasRoom: false, reservable: true, closedDay: `-`, memo: `∙ 2026년 신규오픈`, comment: `` },
@@ -518,6 +518,16 @@
                     else if (place.menu === "일식") titleEmoji = "🍣";
                     else if (place.menu === "양식") titleEmoji = "🍕";
 
+                    // 🌟 도보 시간 '분' 자동 추가 로직 (휴일 아이콘 코드는 삭제되었습니다!)
+                    var walkDisplay = '';
+                    if (place.walkTime && String(place.walkTime).trim() !== '-' && String(place.walkTime).trim() !== '') {
+                        var wTime = String(place.walkTime).trim();
+                        if (!wTime.includes('분')) {
+                            wTime += '분'; // '분' 글자가 없으면 찰떡같이 붙여줌
+                        }
+                        walkDisplay = `<div class="info-row"><span>🚶‍♂️</span><span>${wTime}</span></div>`;
+                    }
+
                     var popupContent = `
                         <div class="popup-header">
                             <div class="popup-title">${titleEmoji} ${place.name}</div>
@@ -527,8 +537,7 @@
                             <div class="info-row"><span>📍</span><span>${place.address}</span></div>
                             ${place.phone ? `<div class="info-row"><span>📞</span><span>${place.phone.replace(/\n/g, '<br>')}</span></div>` : ''}
                             ${place.detailMenu ? `<div class="info-row"><span>🍽️</span><span>${place.detailMenu.replace(/\n/g, '<br>')}</span></div>` : ''}
-                            ${place.walkTime ? `<div class="info-row"><span>🚶‍♂️</span><span>${place.walkTime}</span></div>` : ''}
-                            ${place.closedDay ? `<div class="info-row"><span>🚫</span><span>${place.closedDay}</span></div>` : ''}
+                            ${walkDisplay}
                             
                             <div class="feature-tags">
                                 ${place.hasRoom ? `<span class="tag-green">🚪 룸가능</span>` : ''}
