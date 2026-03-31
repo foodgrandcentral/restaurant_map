@@ -22,7 +22,7 @@
         .list-info { font-size: 12px; color: #777; }
         .list-badge { display: inline-block; padding: 2px 6px; background: #eee; border-radius: 4px; font-size: 11px; margin-right: 5px; }
 
-        /* --- 2. 우측 상단 필터 & 검색 영역 --- */
+        /* --- 2. 우측 상단 컨트롤 영역 (검색, 필터, 랜덤버튼) --- */
         .controls-container { position: absolute; top: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 12px; align-items: flex-end; }
         .filter-buttons { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; max-width: 350px; }
         .filter-btn { padding: 8px 14px; border: 1px solid #ddd; background: white; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: all 0.2s; }
@@ -31,6 +31,19 @@
         .search-box { display: flex; align-items: center; background: white; border-radius: 30px; border: 2px solid #3498db; width: 280px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); overflow: hidden; }
         .search-box span { padding-left: 15px; font-size: 16px; }
         .search-box input { border: none; padding: 12px 15px; width: 100%; outline: none; font-size: 14px; }
+        
+        /* 🌟 새로 추가된 랜덤 뽑기 버튼 디자인 */
+        .random-btn {
+            width: 100%; max-width: 280px; padding: 12px;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+            border: 2px solid #ff9a9e; border-radius: 30px;
+            color: #d63031; font-weight: bold; font-size: 15px;
+            cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            transition: all 0.2s ease;
+            display: flex; justify-content: center; align-items: center; gap: 8px;
+        }
+        .random-btn:hover { transform: scale(1.03); box-shadow: 0 6px 15px rgba(255,154,158,0.4); }
+        .random-btn:active { transform: scale(0.98); }
 
         /* --- 3. 팝업창 상세 디자인 --- */
         .custom-popup .leaflet-popup-content-wrapper { padding: 0; overflow: hidden; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
@@ -48,7 +61,6 @@
         .feature-tags { display: flex; gap: 8px; margin: 12px 0; }
         .tag-green { background-color: #e6f8f0; color: #00a060; padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; }
         
-        /* 박스 디자인 */
         .box-container { margin-top: 15px; }
         .box-label { font-size: 12px; font-weight: bold; color: #888; margin-bottom: 5px; display: flex; align-items: center; gap: 4px; }
         .content-box { background-color: #fdfaf6; border: 1px solid #f0e6d2; border-radius: 8px; padding: 12px; font-size: 13px; color: #444; line-height: 1.5; white-space: pre-wrap; }
@@ -60,7 +72,7 @@
             #sidebar { width: 280px; }
             .controls-container { top: 10px; right: 10px; }
             .filter-btn { padding: 6px 10px; font-size: 12px; }
-            .search-box { width: 200px; }
+            .search-box, .random-btn { width: 200px; }
         }
     </style>
 </head>
@@ -87,8 +99,9 @@
         </div>
         <div class="search-box">
             <span>🔍</span>
-            <input type="text" id="searchInput" placeholder="식당명 검색">
+            <input type="text" id="searchInput" placeholder="식당명, 메뉴 검색">
         </div>
+        <button id="randomBtn" class="random-btn">🎲 오늘 뭐 먹지? (랜덤 뽑기)</button>
     </div>
 
     <div id="map"></div>
@@ -99,7 +112,7 @@
         L.control.zoom({ position: 'bottomright' }).addTo(map); 
         L.tileLayer('https://mt1.google.com/vt/lyrs=m&hl=ko&x={x}&y={y}&z={z}', { attribution: '© Google Maps', maxZoom: 20 }).addTo(map);
 
-        // 🚨 여기에 질문자님의 다듬어진 300개 식당 코드를 복사해서 덮어씌워 주세요! 🚨
+        // 🚨 엑셀로 변환하신 300개의 진짜 식당 데이터를 아래에 덮어씌워 주세요! 🚨
 var restaurants = [
             { name: `모담 서울역점`, phone: `0507-1379-6450`, menu: `한식`, detailMenu: `솥밥`, walkTime: `1`, address: `서울특별시 중구 세종대로 14 그랜드센트럴 지하 3층`, lat: 37.5578385, lng: 126.9744151, hasRoom: true, reservable: true, closedDay: `-`, memo: `∙ 15:00-17:00 브레이크타임\n∙ 25년 11월 신규 오픈`, comment: `` },
             { name: `정백어가 그랜드센트럴서울역점`, phone: `0507-1394-6428`, menu: `한식`, detailMenu: `생선구이`, walkTime: `1`, address: `서울특별시 중구 세종대로 14 그랜드센트럴 A동 103호`, lat: 37.5578385, lng: 126.9744151, hasRoom: false, reservable: true, closedDay: `일`, memo: `∙ 15:00-17:00 브레이크타임\n∙ 단체 이용 가능`, comment: `` },
@@ -472,26 +485,22 @@ var restaurants = [
             { name: `하남돼지집 서울역점`, phone: `0507-1438-1716`, menu: `고기`, detailMenu: `돼지고기`, walkTime: `19분`, address: `서울특별시 서울 용산구 한강대로104길 50 1층`, lat: 37.5503046, lng: 126.974877, hasRoom: false, reservable: true, closedDay: `-`, memo: `∙ 네이버 예약 가능\n∙ 단체이용가능`, comment: `` },
             { name: `암소서울`, phone: `010-2011-3784\n02-6744-0123`, menu: `고기`, detailMenu: `한우/한식`, walkTime: `20`, address: `서울특별시 종로구 종로33 그랑서울 1타워 4층`, lat: 37.57096, lng: 126.9814392, hasRoom: true, reservable: true, closedDay: `-`, memo: `∙ 지평제휴식당(상시 15% 할인)\n∙ 캐치테이블 예약가능/단체 예약 가능`, comment: `` }
         ];
-
         function createIcon(color, emoji) {
             return L.divIcon({ className: 'custom-div-icon', html: `<div style='background-color:${color}; width:30px; height:30px; border-radius:50%; border:2px solid white; text-align:center; line-height:26px; font-size:16px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);'>${emoji}</div>`, iconSize: [30, 30], iconAnchor: [15, 15] });
         }
         var icons = {
-            "한식": createIcon("#3498db", "🍚"), 
-            "중식": createIcon("#e74c3c", "🥟"), 
-            "일식": createIcon("#9b59b6", "🍣"),
-            "양식": createIcon("#f39c12", "🍕"), 
-            "고기": createIcon("#d35400", "🥩"),
-            "카페": createIcon("#e84393", "🍰"), 
-            "아시안": createIcon("#16a085", "🍜"),
-            "생선회": createIcon("#2980b9", "🐟"),
-            "기타": createIcon("#7f8c8d", "🍴")
+            "한식": createIcon("#3498db", "🍚"), "중식": createIcon("#e74c3c", "🥟"), "일식": createIcon("#9b59b6", "🍣"),
+            "양식": createIcon("#f39c12", "🍕"), "고기": createIcon("#d35400", "🥩"), "카페": createIcon("#e84393", "🍰"), 
+            "아시안": createIcon("#16a085", "🍜"), "생선회": createIcon("#2980b9", "🐟"), "기타": createIcon("#7f8c8d", "🍴")
         };
 
         var markerGroup = L.layerGroup().addTo(map);
         var activeMarkers = []; 
         var activeCategories = new Set(["전체"]); 
         var currentSearch = "";
+        
+        // 🌟 랜덤 뽑기를 위한 변수 추가
+        var randomSelectedPlace = null; 
 
         function renderMapAndList() {
             markerGroup.clearLayers();
@@ -500,10 +509,14 @@ var restaurants = [
             var count = 0;
 
             restaurants.forEach(function(place, index) {
+                // 기본 필터 및 검색 조건
                 var matchCategory = activeCategories.has("전체") || activeCategories.has(place.menu);
                 var matchSearch = (!currentSearch || place.name.includes(currentSearch) || place.menu.includes(currentSearch) || place.detailMenu.includes(currentSearch));
+                
+                // 🌟 랜덤 버튼이 눌려서 특정 식당이 지정되었다면, 그 식당만 통과시킴
+                var matchRandom = (!randomSelectedPlace || place === randomSelectedPlace);
 
-                if (matchCategory && matchSearch) {
+                if (matchCategory && matchSearch && matchRandom) {
                     count++;
                     var region = place.address.split(' ')[0]; 
                     var naverSearchUrl = "https://map.naver.com/p/search/" + encodeURIComponent(place.name);
@@ -518,13 +531,10 @@ var restaurants = [
                     else if (place.menu === "일식") titleEmoji = "🍣";
                     else if (place.menu === "양식") titleEmoji = "🍕";
 
-                    // 🌟 도보 시간 '분' 자동 추가 로직 (휴일 아이콘 코드는 삭제되었습니다!)
                     var walkDisplay = '';
                     if (place.walkTime && String(place.walkTime).trim() !== '-' && String(place.walkTime).trim() !== '') {
                         var wTime = String(place.walkTime).trim();
-                        if (!wTime.includes('분')) {
-                            wTime += '분'; // '분' 글자가 없으면 찰떡같이 붙여줌
-                        }
+                        if (!wTime.includes('분')) wTime += '분'; 
                         walkDisplay = `<div class="info-row"><span>🚶‍♂️</span><span>${wTime}</span></div>`;
                     }
 
@@ -544,17 +554,8 @@ var restaurants = [
                                 ${place.reservable ? `<span class="tag-green">✅ 예약가능</span>` : ''}
                             </div>
                             
-                            ${place.memo ? `
-                            <div class="box-container">
-                                <div class="box-label"><span>📝</span> 메모</div>
-                                <div class="content-box">${place.memo}</div>
-                            </div>` : ''}
-                            
-                            ${place.comment ? `
-                            <div class="box-container">
-                                <div class="box-label"><span>💬</span> 코멘트</div>
-                                <div class="content-box comment-box">${place.comment}</div>
-                            </div>` : ''}
+                            ${place.memo ? `<div class="box-container"><div class="box-label"><span>📝</span> 메모</div><div class="content-box">${place.memo}</div></div>` : ''}
+                            ${place.comment ? `<div class="box-container"><div class="box-label"><span>💬</span> 코멘트</div><div class="content-box comment-box">${place.comment}</div></div>` : ''}
 
                             <a href="${naverSearchUrl}" target="_blank" class="naver-btn">🟢 네이버</a>
                         </div>
@@ -589,12 +590,15 @@ var restaurants = [
             var item = activeMarkers[index];
             map.setView([item.lat, item.lng], 16); 
             item.marker.openPopup(); 
-            if(window.innerWidth <= 600) { toggleSidebar(); }
+            if(window.innerWidth <= 600 && !sidebar.classList.contains('closed')) { toggleSidebar(); }
         }
 
+        // --- 🌟 필터 탭 클릭 이벤트 (클릭 시 랜덤 뽑기 모드 리셋) ---
         var filterBtns = document.querySelectorAll('.filter-btn');
         filterBtns.forEach(function(btn) {
             btn.addEventListener('click', function(e) {
+                randomSelectedPlace = null; // 💡 다른 탭 누르면 랜덤 뽑기 모드 해제!
+
                 var clickedCat = e.target.getAttribute('data-category');
                 if (clickedCat === "전체") {
                     activeCategories.clear();
@@ -613,7 +617,39 @@ var restaurants = [
             });
         });
 
-        document.getElementById('searchInput').addEventListener('input', function(e) { currentSearch = e.target.value; renderMapAndList(); });
+        // --- 🌟 검색창 입력 이벤트 (입력 시 랜덤 뽑기 모드 리셋) ---
+        document.getElementById('searchInput').addEventListener('input', function(e) { 
+            randomSelectedPlace = null; // 💡 검색어 쓰면 랜덤 뽑기 모드 해제!
+            currentSearch = e.target.value; 
+            renderMapAndList(); 
+        });
+
+        // --- 🌟 대망의 점심 룰렛(랜덤 뽑기) 기능 ---
+        document.getElementById('randomBtn').addEventListener('click', function() {
+            // 현재 화면에 조건(필터/검색)이 맞는 식당들만 추려냅니다.
+            var visiblePlaces = restaurants.filter(function(place) {
+                var matchCategory = activeCategories.has("전체") || activeCategories.has(place.menu);
+                var matchSearch = (!currentSearch || place.name.includes(currentSearch) || place.menu.includes(currentSearch) || place.detailMenu.includes(currentSearch));
+                return matchCategory && matchSearch;
+            });
+
+            if (visiblePlaces.length > 0) {
+                // 남아있는 식당들 중에서 랜덤으로 하나를 뽑습니다.
+                var randomIndex = Math.floor(Math.random() * visiblePlaces.length);
+                randomSelectedPlace = visiblePlaces[randomIndex]; // 1개만 선택되도록 변수 설정
+                
+                renderMapAndList(); // 지도를 다시 그리면 선택된 1개만 나타납니다.
+
+                // 선택된 그 1개의 식당으로 지도를 스르륵 이동시키고 팝업을 열어줍니다!
+                setTimeout(() => {
+                    if (activeMarkers.length > 0) {
+                        clickListItem(0);
+                    }
+                }, 100);
+            } else {
+                alert("선택할 수 있는 식당이 없습니다!");
+            }
+        });
 
         var sidebar = document.getElementById('sidebar');
         var sidebarToggle = document.getElementById('sidebar-toggle');
