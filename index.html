@@ -10,27 +10,11 @@
         #map { width: 100vw; height: 100vh; }
         
         /* --- 1. 좌측 슬라이드 사이드바 --- */
-        #sidebar {
-            position: absolute; top: 0; left: 0; width: 320px; height: 100vh;
-            background: white; z-index: 2000;
-            transition: transform 0.3s ease;
-            box-shadow: 2px 0 15px rgba(0,0,0,0.15);
-            display: flex; flex-direction: column;
-        }
-        #sidebar.closed { transform: translateX(-100%); } /* 접혔을 때 화면 밖으로 이동 */
-        
-        #sidebar-toggle {
-            position: absolute; top: 50%; right: -28px; transform: translateY(-50%);
-            width: 28px; height: 60px; background: white;
-            border-radius: 0 10px 10px 0; cursor: pointer;
-            box-shadow: 3px 0 5px rgba(0,0,0,0.1);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 12px; color: #555; z-index: 2001; border-left: 1px solid #eee;
-        }
-        
+        #sidebar { position: absolute; top: 0; left: 0; width: 320px; height: 100vh; background: white; z-index: 2000; transition: transform 0.3s ease; box-shadow: 2px 0 15px rgba(0,0,0,0.15); display: flex; flex-direction: column; }
+        #sidebar.closed { transform: translateX(-100%); }
+        #sidebar-toggle { position: absolute; top: 50%; right: -28px; transform: translateY(-50%); width: 28px; height: 60px; background: white; border-radius: 0 10px 10px 0; cursor: pointer; box-shadow: 3px 0 5px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; font-size: 12px; color: #555; z-index: 2001; border-left: 1px solid #eee; }
         .sidebar-header { padding: 20px; font-weight: bold; font-size: 18px; border-bottom: 1px solid #eee; }
         .list-count { color: #3498db; font-size: 14px; margin-left: 5px; }
-        
         #restaurant-list { overflow-y: auto; flex: 1; padding: 0; margin: 0; list-style: none; }
         .list-item { padding: 15px 20px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: background 0.2s; }
         .list-item:hover { background-color: #f4f9fd; }
@@ -39,45 +23,39 @@
         .list-badge { display: inline-block; padding: 2px 6px; background: #eee; border-radius: 4px; font-size: 11px; margin-right: 5px; }
 
         /* --- 2. 우측 상단 필터 & 검색 영역 --- */
-        .controls-container {
-            position: absolute; top: 20px; right: 20px; z-index: 1000;
-            display: flex; flex-direction: column; gap: 12px; align-items: flex-end;
-        }
-        
-        /* 메뉴 버튼들 */
+        .controls-container { position: absolute; top: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 12px; align-items: flex-end; }
         .filter-buttons { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; max-width: 350px; }
-        .filter-btn {
-            padding: 8px 14px; border: 1px solid #ddd; background: white;
-            border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: bold;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: all 0.2s;
-        }
-        .filter-btn.active { background: #3498db; color: white; border-color: #3498db; }
-        
-        /* 돋보기 검색창 */
-        .search-box {
-            display: flex; align-items: center; background: white;
-            border-radius: 30px; border: 2px solid #3498db;
-            width: 280px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); overflow: hidden;
-        }
+        .filter-btn { padding: 8px 14px; border: 1px solid #ddd; background: white; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: all 0.2s; }
+        .filter-btn.active { background: #ff7f00; color: white; border-color: #ff7f00; }
+        .filter-btn[data-category="전체"].active { background: #3498db; border-color: #3498db; }
+        .search-box { display: flex; align-items: center; background: white; border-radius: 30px; border: 2px solid #3498db; width: 280px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); overflow: hidden; }
         .search-box span { padding-left: 15px; font-size: 16px; }
         .search-box input { border: none; padding: 12px 15px; width: 100%; outline: none; font-size: 14px; }
 
-        /* --- 3. 팝업창 디자인 (기존 프리미엄 유지) --- */
+        /* --- 3. 팝업창 상세 디자인 --- */
         .custom-popup .leaflet-popup-content-wrapper { padding: 0; overflow: hidden; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .custom-popup .leaflet-popup-content { margin: 0; width: 260px !important; }
+        .custom-popup .leaflet-popup-content { margin: 0; width: 280px !important; } /* 넓이를 살짝 키웠습니다 */
         .custom-popup .leaflet-popup-close-button { color: #ffffff !important; padding: 8px 8px 0 0 !important; }
+        
         .popup-header { background-color: #242432; color: white; padding: 16px; }
         .popup-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
         .header-badges { display: flex; gap: 6px; }
         .badge-dark { background-color: #3b3b4d; padding: 4px 10px; border-radius: 12px; font-size: 12px; color: #ddd; }
         .badge-orange { background-color: #ff7f00; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; }
-        .popup-body { background-color: white; padding: 16px; }
-        .info-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; font-size: 13px; color: #444; line-height: 1.4; }
-        .feature-tags { display: flex; gap: 8px; margin: 15px 0; }
-        .tag-green { background-color: #e6f8f0; color: #00a060; padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; }
-        .naver-btn { display: flex; align-items: center; justify-content: center; gap: 5px; background-color: #03c75a; color: white; text-decoration: none; padding: 10px; border-radius: 6px; font-weight: bold; font-size: 14px; margin-top: 10px; width: fit-content; }
         
-        /* 모바일 화면 대응 */
+        .popup-body { background-color: white; padding: 16px; }
+        .info-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; font-size: 13px; color: #444; line-height: 1.4; }
+        .feature-tags { display: flex; gap: 8px; margin: 12px 0; }
+        .tag-green { background-color: #e6f8f0; color: #00a060; padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; }
+        
+        /* 새로 추가된 메모 & 코멘트 박스 디자인 */
+        .box-container { margin-top: 15px; }
+        .box-label { font-size: 12px; font-weight: bold; color: #888; margin-bottom: 5px; display: flex; align-items: center; gap: 4px; }
+        .content-box { background-color: #fdfaf6; border: 1px solid #f0e6d2; border-radius: 8px; padding: 12px; font-size: 13px; color: #444; line-height: 1.5; white-space: pre-wrap; }
+        .comment-box { background-color: #f4f6fa; border-color: #e2e8f0; }
+        
+        .naver-btn { display: flex; align-items: center; justify-content: center; gap: 5px; background-color: #03c75a; color: white; text-decoration: none; padding: 10px; border-radius: 6px; font-weight: bold; font-size: 14px; margin-top: 15px; width: fit-content; }
+        
         @media (max-width: 600px) {
             #sidebar { width: 280px; }
             .controls-container { top: 10px; right: 10px; }
@@ -95,13 +73,16 @@
     </div>
 
     <div class="controls-container">
-        <div class="filter-buttons" id="filter-buttons">
+<div class="filter-buttons" id="filter-buttons">
             <button class="filter-btn active" data-category="전체">전체</button>
             <button class="filter-btn" data-category="한식">한식</button>
             <button class="filter-btn" data-category="중식">중식</button>
             <button class="filter-btn" data-category="일식">일식</button>
             <button class="filter-btn" data-category="양식">양식</button>
             <button class="filter-btn" data-category="고기">고기</button>
+            <button class="filter-btn" data-category="카페">카페</button>
+            <button class="filter-btn" data-category="아시안">아시안</button>
+            <button class="filter-btn" data-category="생선회">생선회</button>
             <button class="filter-btn" data-category="기타">기타</button>
         </div>
         <div class="search-box">
@@ -114,42 +95,37 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // --- 지도 초기화 ---
-        var map = L.map('map', {zoomControl: false}).setView([37.556, 126.972], 15);
+        var map = L.map('map', {zoomControl: false}).setView([37.5615, 126.9760], 15);
         L.control.zoom({ position: 'bottomright' }).addTo(map); 
         L.tileLayer('https://mt1.google.com/vt/lyrs=m&hl=ko&x={x}&y={y}&z={z}', { attribution: '© Google Maps', maxZoom: 20 }).addTo(map);
 
-        // --- 식당 데이터 (엑셀 변환 데이터 넣는 곳) ---
+        // 🌟 N열에서 만든 마법의 코드를 여기에 통째로 붙여넣으세요! (현재는 테스트용 2개)
         var restaurants = [
-            { name: "모담 서울역점", address: "중구 세종대로 14 그랜드센트럴 지하 3층", menu: "한식", lat: 37.55820, lng: 126.97390, hasRoom: true, reservable: true },
-            { name: "서령 본점", address: "중구 소월로 10 1층", menu: "한식", lat: 37.55640, lng: 126.97480, hasRoom: true, reservable: true },
-            { name: "타니 서울역점", address: "용산구 청파로 378 KTX 서울역 4층", menu: "일식", lat: 37.552582, lng: 126.971101, hasRoom: true, reservable: true },
-            { name: "호우섬 서울역사점", address: "중구 한강대로 405 서울역사 3층", menu: "중식", lat: 37.55460, lng: 126.97060, hasRoom: true, reservable: true },
-            { name: "보원", address: "중구 남대문로1길 26-10 1층", menu: "고기", lat: 37.5615, lng: 126.9760, hasRoom: true, reservable: true },
-            { name: "콘피에르", address: "중구 세종대로 14 그랜드센트럴 2층", menu: "양식", lat: 37.5583, lng: 126.9738, hasRoom: false, reservable: true }
+            { name: `삼일 금룡`, phone: `02-6255-9931`, menu: `중식`, detailMenu: `중식코스요리`, walkTime: `도보 10분`, address: `서울 종로구 청계천로 85 삼일 빌딩 2층`, lat: 37.5683, lng: 126.9860, hasRoom: true, reservable: true, closedDay: `매주 일요일`, memo: `· 네이버 예약 가능\n· 발렛주차 가능`, comment: `· 고급 중식코스요리\n· 다양한 좌석이 있어 모임/회식에 좋음` },
+            { name: `콘피에르`, phone: ``, menu: `양식`, detailMenu: `퓨전양식 코스`, walkTime: `도보 5분`, address: `중구 세종대로 14 그랜드센트럴 2층`, lat: 37.5583, lng: 126.9738, hasRoom: false, reservable: true, closedDay: ``, memo: ``, comment: `가성비가 아주 좋은 파인다이닝` }
         ];
 
-        // --- 아이콘 디자인 (양식, 고기, 기타 등 확장) ---
         function createIcon(color, emoji) {
             return L.divIcon({ className: 'custom-div-icon', html: `<div style='background-color:${color}; width:30px; height:30px; border-radius:50%; border:2px solid white; text-align:center; line-height:26px; font-size:16px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);'>${emoji}</div>`, iconSize: [30, 30], iconAnchor: [15, 15] });
         }
         var icons = {
-            "한식": createIcon("#3498db", "🍚"),
-            "중식": createIcon("#e74c3c", "🥟"),
+            "한식": createIcon("#3498db", "🍚"), 
+            "중식": createIcon("#e74c3c", "🥟"), 
             "일식": createIcon("#9b59b6", "🍣"),
-            "양식": createIcon("#f39c12", "🍝"),
+            "양식": createIcon("#f39c12", "🍕"), 
             "고기": createIcon("#d35400", "🥩"),
-            "default": createIcon("#7f8c8d", "🍴")
+            // 💡 아래 3개 카테고리 추가!
+            "카페": createIcon("#e84393", "🍰"), 
+            "아시안": createIcon("#16a085", "🍜"),
+            "생선회": createIcon("#2980b9", "🐟"),
+            "기타": createIcon("#7f8c8d", "🍴")
         };
 
         var markerGroup = L.layerGroup().addTo(map);
-        var activeMarkers = []; // 리스트 클릭 시 팝업을 열기 위해 마커들을 저장해두는 배열
-
-        // 현재 선택된 필터 상태
-        var currentCategory = "전체";
+        var activeMarkers = []; 
+        var activeCategories = new Set(["전체"]); 
         var currentSearch = "";
 
-        // --- 지도와 리스트를 동시에 그리는 메인 함수 ---
         function renderMapAndList() {
             markerGroup.clearLayers();
             activeMarkers = [];
@@ -157,19 +133,24 @@
             var count = 0;
 
             restaurants.forEach(function(place, index) {
-                // 1. 조건 검사 (카테고리 & 검색어)
-                var matchCategory = (currentCategory === "전체" || place.menu.includes(currentCategory));
+                var matchCategory = activeCategories.has("전체") || activeCategories.has(place.menu);
                 var matchSearch = (!currentSearch || place.name.includes(currentSearch));
 
-                // 조건에 맞으면 지도에 핀을 꽂고 사이드바 목록에 추가
                 if (matchCategory && matchSearch) {
                     count++;
-                    
-                    // --- 지도 핀 그리기 ---
                     var region = place.address.split(' ')[0]; 
                     var naverSearchUrl = "https://map.naver.com/p/search/" + encodeURIComponent(place.name);
-                    var titleEmoji = place.menu.includes("고기") ? "🥩" : (place.menu === "한식" ? "🍚" : (place.menu === "중식" ? "🥟" : (place.menu === "일식" ? "🍣" : (place.menu === "양식" ? "🍝" : "🍽️"))));
+                    var titleEmoji = "🍽️"; // 기본값
+if (place.menu.includes("고기")) titleEmoji = "🥩";
+else if (place.menu === "한식") titleEmoji = "🍚";
+else if (place.menu === "카페") titleEmoji = "🍰";
+else if (place.menu === "아시안") titleEmoji = "🍜";
+else if (place.menu === "생선회") titleEmoji = "🐟";
+else if (place.menu === "중식") titleEmoji = "🥟";
+else if (place.menu === "일식") titleEmoji = "🍣";
+else if (place.menu === "양식") titleEmoji = "🍕";
 
+                    // 🌟 데이터가 있는(비어있지 않은) 항목만 HTML에 추가하도록 스마트하게 짰습니다.
                     var popupContent = `
                         <div class="popup-header">
                             <div class="popup-title">${titleEmoji} ${place.name}</div>
@@ -177,25 +158,41 @@
                         </div>
                         <div class="popup-body">
                             <div class="info-row"><span>📍</span><span>${place.address}</span></div>
+                            ${place.phone ? `<div class="info-row"><span>📞</span><span>${place.phone}</span></div>` : ''}
+                            ${place.detailMenu ? `<div class="info-row"><span>🍽️</span><span>${place.detailMenu}</span></div>` : ''}
+                            ${place.walkTime ? `<div class="info-row"><span>🚶‍♂️</span><span>${place.walkTime}</span></div>` : ''}
+                            ${place.closedDay ? `<div class="info-row"><span>🚫</span><span>${place.closedDay}</span></div>` : ''}
+                            
                             <div class="feature-tags">
                                 ${place.hasRoom ? `<span class="tag-green">🚪 룸가능</span>` : ''}
                                 ${place.reservable ? `<span class="tag-green">✅ 예약가능</span>` : ''}
                             </div>
+                            
+                            ${place.memo ? `
+                            <div class="box-container">
+                                <div class="box-label"><span>📝</span> 메모</div>
+                                <div class="content-box">${place.memo}</div>
+                            </div>` : ''}
+                            
+                            ${place.comment ? `
+                            <div class="box-container">
+                                <div class="box-label"><span>💬</span> 코멘트</div>
+                                <div class="content-box comment-box">${place.comment}</div>
+                            </div>` : ''}
+
                             <a href="${naverSearchUrl}" target="_blank" class="naver-btn">🟢 네이버</a>
                         </div>
                     `;
 
-                    var selectedIcon = icons[place.menu] || icons["고기"] || icons["default"];
+                    var selectedIcon = icons[place.menu] || icons["기타"];
                     if(place.menu.includes("고기")) selectedIcon = icons["고기"];
 
                     var marker = L.marker([place.lat, place.lng], {icon: selectedIcon}).bindPopup(popupContent, {className: 'custom-popup'});
                     markerGroup.addLayer(marker);
                     
-                    // 마커 저장 (리스트 클릭 시 연동하기 위함)
                     activeMarkers.push({ marker: marker, lat: place.lat, lng: place.lng });
                     var markerIndex = activeMarkers.length - 1;
 
-                    // --- 사이드바 리스트 HTML 만들기 ---
                     listHtml += `
                         <li class="list-item" onclick="clickListItem(${markerIndex})">
                             <div class="list-title">${place.name}</div>
@@ -208,57 +205,48 @@
                 }
             });
 
-            // 화면 업데이트
             document.getElementById('restaurant-list').innerHTML = listHtml;
             document.getElementById('list-count').innerText = count + "개";
         }
 
-        // 리스트 항목 클릭 시 지도 이동 & 팝업 열기
         function clickListItem(index) {
             var item = activeMarkers[index];
-            map.setView([item.lat, item.lng], 16); // 해당 위치로 줌인
-            item.marker.openPopup(); // 팝업 열기
-            
-            // 모바일 화면에서는 클릭 후 사이드바를 살짝 접어주는 센스
+            map.setView([item.lat, item.lng], 16); 
+            item.marker.openPopup(); 
             if(window.innerWidth <= 600) { toggleSidebar(); }
         }
 
-        // --- 이벤트 설정 ---
-        // 1. 필터 버튼 클릭 이벤트
         var filterBtns = document.querySelectorAll('.filter-btn');
         filterBtns.forEach(function(btn) {
             btn.addEventListener('click', function(e) {
-                // 버튼 색상 변경
-                filterBtns.forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                
-                // 데이터 필터링
-                currentCategory = e.target.getAttribute('data-category');
+                var clickedCat = e.target.getAttribute('data-category');
+                if (clickedCat === "전체") {
+                    activeCategories.clear();
+                    activeCategories.add("전체");
+                } else {
+                    activeCategories.delete("전체");
+                    if (activeCategories.has(clickedCat)) { activeCategories.delete(clickedCat); } 
+                    else { activeCategories.add(clickedCat); }
+                    if (activeCategories.size === 0) { activeCategories.add("전체"); }
+                }
+                filterBtns.forEach(b => {
+                    var cat = b.getAttribute('data-category');
+                    if (activeCategories.has(cat)) { b.classList.add('active'); } else { b.classList.remove('active'); }
+                });
                 renderMapAndList();
             });
         });
 
-        // 2. 검색창 입력 이벤트
-        document.getElementById('searchInput').addEventListener('input', function(e) {
-            currentSearch = e.target.value;
-            renderMapAndList();
-        });
+        document.getElementById('searchInput').addEventListener('input', function(e) { currentSearch = e.target.value; renderMapAndList(); });
 
-        // 3. 사이드바 접기/펴기 이벤트
         var sidebar = document.getElementById('sidebar');
         var sidebarToggle = document.getElementById('sidebar-toggle');
-        
         function toggleSidebar() {
             sidebar.classList.toggle('closed');
-            if(sidebar.classList.contains('closed')) {
-                sidebarToggle.innerText = '▶';
-            } else {
-                sidebarToggle.innerText = '◀';
-            }
+            sidebarToggle.innerText = sidebar.classList.contains('closed') ? '▶' : '◀';
         }
         sidebarToggle.addEventListener('click', toggleSidebar);
 
-        // 최초 실행
         renderMapAndList();
     </script>
 </body>
