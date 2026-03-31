@@ -118,10 +118,20 @@
             // 식당 이름으로 네이버 지도 검색 URL 자동 생성
             var naverSearchUrl = "https://map.naver.com/p/search/" + encodeURIComponent(place.name);
 
-            // 팝업창 HTML 구조 조립 (사진과 동일한 레이아웃)
+            // ⭐️ 메뉴에 따라 팝업창 제목 앞의 이모지 자동으로 결정하기
+            var titleEmoji = "🍽️"; // 기본 이모지 (한식, 중식 등이 아닐 때)
+            if (place.menu === "한식") {
+                titleEmoji = "🍚";
+            } else if (place.menu === "중식") {
+                titleEmoji = "🥟";
+            } else if (place.menu.includes("고기")) { // 메뉴에 '고기'라는 단어가 포함되어 있다면
+                titleEmoji = "🥩";
+            }
+
+            // 팝업창 HTML 구조 조립
             var popupContent = `
                 <div class="popup-header">
-                    <div class="popup-title">🥩 ${place.name}</div>
+                    <div class="popup-title">${titleEmoji} ${place.name}</div>
                     <div class="header-badges">
                         <span class="badge-dark">${region}</span>
                         <span class="badge-orange">${place.menu}</span>
@@ -143,6 +153,7 @@
                 </div>
             `;
 
+            // 마커 아이콘도 메뉴에 맞춰 선택
             var selectedIcon = (place.menu === "한식") ? koreanIcon : (place.menu === "중식") ? chineseIcon : new L.Icon.Default();
 
             L.marker([place.lat, place.lng], {icon: selectedIcon})
